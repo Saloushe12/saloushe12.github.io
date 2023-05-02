@@ -1,11 +1,11 @@
 # Site settings
 title: Jonathan Zhao
 email: jonzhao@mit.edu
-url: https://github.com/jeromelachaud/freelancer-theme
-description: "Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description."
-keywords: "your keywords, separated by commas"
-skills: "Web Developer - Graphic Artist - User Experience Designer"
-meta_author: LastName FirstName
+url: https://https://saloushe12.github.io/
+description: "Jonathan Zhao Personal Site Demo"
+keywords: "Jonathan Zhao, MIT, Undergrad"
+skills: "MIT Student, Computer Science, Cognitive Science"
+meta_author: Zhao Jonathan
 
 # Google webmaster tools
 google_verify:
@@ -32,31 +32,26 @@ color:
 
 # Footer settings
 footer:
-  copyright: Dr. Henry Jekyll
   location: Location
-  social: Around the Web
+  social: Socials
   credits: Credits
 
 # Social networks usernames (many more available: google-plus, flickr, dribbble, pinterest, instagram, tumblr, linkedin, etc.)
 social:
   - title: twitter
-    url: http://twitter.com/jekyllrb
+    url: https://twitter.com/JonathanZhao6
   - title: facebook
-    url:
-  - title: stack-overflow
-    url: http://stackoverflow.com/questions/tagged/jekyll
-  - title: bitbucket
-    url: http://bitbucket.org/jekyll
+    url: https://www.facebook.com/jonathan.zhao.779 
   - title: github
-    url: http://github.com/jekyll
+    url: https://github.com/Saloushe12
 
 # Postal address (add as many lines as necessary)
 address:
-  - line: 3481 Melrose Place
-  - line: Beverly Hills, CA 90210
+  - line: 450 Memorial Drive
+  - line: Cambridge, MA, 02139
 
 # Credits content
-credits: 'Freelancer is a free to use, open source Bootstrap theme created by <a href="http://startbootstrap.com">Start Bootstrap</a>.'
+credits: '<a href="http://startbootstrap.com">Start Bootstrap</a>.'
 
 # Build settings
 markdown: kramdown
