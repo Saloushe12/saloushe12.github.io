@@ -1,0 +1,11 @@
+---
+layout: default
+modal-id: 1
+date: 05-02-2023
+img: cabin.png
+alt: image-alt
+project-date: May 2023
+client: Myself
+category: Web Development
+description: Sample project post using markdown. 
+---
