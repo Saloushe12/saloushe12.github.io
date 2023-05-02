@@ -1,3 +1,3 @@
-# saloushe12.github.io
+# jonzhao.github.io
 Jonathan Zhao's Website
 Hello!
