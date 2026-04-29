@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Designftw Chatroom</title>
+        <script type="importmap">
+            {
+                "imports": {
+                    "vue": "https://cdn.jsdelivr.net/npm/vue@3.5.32/dist/vue.esm-browser.js",
+                    "@graffiti-garden/implementation-local": "https://cdn.jsdelivr.net/npm/@graffiti-garden/implementation-local@1.2.0/dist/browser/index.js",
+                    "@graffiti-garden/implementation-decentralized": "https://cdn.jsdelivr.net/npm/@graffiti-garden/implementation-decentralized@0.0.9/dist/browser/index.js",
+                    "@graffiti-garden/wrapper-vue": "https://cdn.jsdelivr.net/npm/@graffiti-garden/wrapper-vue@1.2.2/dist/browser/plugin.mjs"
+                }
+            }
+        </script>
+        <script src="index.js" type="module"></script>
+        <link rel="stylesheet" href="style.css" />
+    </head>
+    <body>
+        <div id="app">Loading...</div>
+        <template id="template">
+            <button v-if="!$graffitiSession.value" @click="$graffiti.login()">
+                Log In
+            </button>
+            <template v-else>
+                <main class="app-layout">
+                    <aside class="left-panel">
+                        <div class="panel-head">
+                            <h2>Chats</h2>
+                            <button @click="$graffiti.logout($graffitiSession.value)">
+                                Log Out
+                            </button>
+                        </div>
+                        <p class="muted">
+                            Directory: <code>{{ DIRECTORY_CHANNEL }}</code>
+                        </p>
+                        <div class="create-row">
+                            <input type="text" v-model="newChatTitle" placeholder="New chat title" />
+                            <button
+                                type="button"
+                                @click="newChat()"
+                                :disabled="isCreatingChat"
+                            >
+                                {{ isCreatingChat ? "Creating..." : "New Chat" }}
+                            </button>
+                        </div>
+                        <p v-if="areChatsLoading"><em>Loading chats...</em></p>
+                        <ul v-else class="chat-list">
+                            <li
+                                v-for="chat of sortedChats"
+                                :key="chat.url"
+                                class="chat-list-item"
+                                :class="{ 'chat-list-item--active': chat.value.channel === channel }"
+                            >
+                                <button
+                                    type="button"
+                                    class="chat-list-button"
+                                    @click="selectChat(chat)"
+                                >
+                                    {{ chat.value.title }}
+                                </button>
+                            </li>
+                        </ul>
+                    </aside>
+
+                    <section class="middle-panel">
+                        <div class="panel-head">
+                            <h2>{{ currentChatTitle }}</h2>
+                            <button
+                                type="button"
+                                @click="joinCurrentChat()"
+                                :disabled="!channel || isJoiningChat"
+                            >
+                                {{ isJoiningChat ? "Joining..." : "Join Chat" }}
+                            </button>
+                        </div>
+                        <p class="muted" v-if="channel">
+                            Channel: <code>{{ channel }}</code>
+                        </p>
+                        <p v-if="joinError" class="error">{{ joinError }}</p>
+                        <p class="muted" v-if="channel">Joined actors: {{ joinCount }}</p>
+
+                        <div class="messages-scroll">
+                            <p v-if="!channel" class="muted">
+                                Select a chat on the left to begin.
+                            </p>
+                            <p v-else-if="areMessageObjectsLoading">
+                                <em>Loading messages...</em>
+                            </p>
+                            <ul v-else class="message-list">
+                                <li v-for="object of sortedMessageObjects" :key="object.url" class="message-row">
+                                    <div>
+                                        <strong>
+                                            <graffiti-actor-to-handle :actor="object.actor">
+                                            </graffiti-actor-to-handle>
+                                        </strong>
+                                        : {{ object.value.content }}
+                                    </div>
+                                    <div class="message-actions">
+                                        <button
+                                            type="button"
+                                            @click="pinMessage(object)"
+                                            :disabled="pinnedTargets.has(object.url) || isPinning.has(object.url)"
+                                        >
+                                            {{
+                                                pinnedTargets.has(object.url)
+                                                    ? "Pinned"
+                                                    : isPinning.has(object.url)
+                                                    ? "Pinning..."
+                                                    : "Pin"
+                                            }}
+                                        </button>
+                                        <button
+                                            v-if="object.actor===$graffitiSession.value?.actor"
+                                            @click="deleteMessage(object)"
+                                            :disabled="isDeleting.has(object.url)"
+                                        >
+                                            {{
+                                                isDeleting.has(object.url)
+                                                    ? "Deleting..."
+                                                    : "Delete"
+                                            }}
+                                        </button>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <form @submit.prevent="sendMessage()" class="compose-row">
+                            <input
+                                type="text"
+                                v-model="myMessage"
+                                :disabled="!channel"
+                                placeholder="Message #{{ currentChatTitle }}"
+                            />
+                            <input
+                                type="submit"
+                                :value="isSending ? 'Sending...' : 'Send'"
+                                :disabled="!channel || !myMessage || isSending"
+                            />
+                        </form>
+                    </section>
+
+                    <aside class="right-panel">
+                        <h2>Pinned Messages</h2>
+                        <p v-if="!channel" class="muted">
+                            Select a chat to view pinned items.
+                        </p>
+                        <p v-else-if="arePinsLoading">
+                            <em>Loading pins...</em>
+                        </p>
+                        <p v-else-if="pinnedMessages.length === 0" class="muted">
+                            No pinned messages yet.
+                        </p>
+                        <ul v-else class="pinned-list">
+                            <li v-for="pin of pinnedMessages" :key="pin.url" class="pinned-row">
+                                <div class="muted">
+                                    <graffiti-actor-to-handle :actor="pin.actor">
+                                    </graffiti-actor-to-handle>
+                                </div>
+                                <p>{{ pin.value.content }}</p>
+                                <button
+                                    v-if="pin.actor===$graffitiSession.value?.actor"
+                                    type="button"
+                                    @click="unpinMessage(pin)"
+                                    :disabled="isUnpinning.has(pin.url)"
+                                >
+                                    {{ isUnpinning.has(pin.url) ? "Unpinning..." : "Unpin" }}
+                                </button>
+                            </li>
+                        </ul>
+                    </aside>
+                </main>
+            </template>
+        </template>
+    </body>
+</html>

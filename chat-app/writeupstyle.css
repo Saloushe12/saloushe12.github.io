@@ -1,0 +1,352 @@
+/* === Phase 1: Light-mode palette + Inter font === */
+:root {
+    --color-bg: #fafaf9;
+    --color-surface: #ffffff;
+    --color-surface-hover: #fef8f5;
+    --color-border: #e5e1d8;
+    --color-text: #18181b;
+    --color-muted: #6b7280;
+    --color-accent: #dc4a22;
+    --color-accent-hover: #b83a1a;
+    --color-accent-subtle: #fef3ef;
+}
+
+body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    max-width: 70rem;
+    margin: 0 auto;
+    padding: 0 2rem;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    line-height: 1.7;
+    overflow-wrap: break-word;
+}
+
+a {
+    color: var(--color-accent);
+}
+
+/* === Phase 2: Sticky frosted-glass nav === */
+/* Nav floats at the top on scroll; backdrop-blur keeps it legible over content. */
+header {
+    position: sticky;
+    top: 0;
+    background-color: rgba(250, 250, 249, 0.9);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--color-border);
+    padding-block: 1rem;
+    margin-bottom: 1.5rem;
+    z-index: 100;
+}
+
+/* Nav links use body text color at rest; accent only on interaction. */
+nav a {
+    color: var(--color-text);
+    text-decoration: none;
+    font-weight: 500;
+    padding-bottom: 0.2rem;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+nav a:hover,
+nav a:focus {
+    color: var(--color-accent);
+    border-bottom-color: var(--color-accent);
+}
+
+nav ul {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: start;
+    gap: 1.25rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex-wrap: wrap;
+}
+
+/* === Phase 2: Card elevation via box-shadow ===
+   On a light site, borders add noise where surfaces are similar colors.
+   Box-shadow communicates lift. Hover gains a left accent edge. */
+article {
+    background-color: var(--color-surface);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+    padding: 20px;
+    border-radius: 10px;
+    break-inside: avoid;
+    transition: box-shadow 0.15s, border-left-color 0.15s;
+    border-left: 3px solid transparent;
+}
+
+article:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.10), 0 2px 4px rgba(0, 0, 0, 0.06);
+    background-color: var(--color-surface-hover);
+    border-left-color: var(--color-accent);
+}
+
+article h3 {
+    margin-top: 0;
+    font-size: 1.5rem;
+}
+
+article img {
+    width: 90%;
+}
+
+/* === Phase 3: Typography scale ===
+   On a light site, hierarchy comes from weight and size, not color inversion.
+   Inter's 700 weight with negative letter-spacing is an editorial standard. */
+h1 {
+    font-size: clamp(2.2rem, 6vw, 3.5rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 0.25rem;
+}
+
+h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+h3 {
+    font-size: clamp(1.3rem, 2.5vw, 1.75rem);
+    line-height: 1.25;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+/* CV subheadings */
+h5 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 0.25rem;
+}
+
+/* CV section labels — small-caps treatment makes them feel like formal labels */
+h6 {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-muted);
+    margin-top: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+main h2 {
+    font-size: 2rem;
+}
+
+/* Subtitle immediately after h1 (e.g. "CS @ MIT") */
+h1 + p {
+    color: var(--color-muted);
+    font-size: 1.1rem;
+    margin-top: 0;
+}
+
+/* === Phase 3: Buttons and form inputs ===
+   Unstyled browser buttons look broken on a designed site.
+   Coral accent on the CTA ties interactive elements to the visual identity. */
+button[type="submit"] {
+    background-color: var(--color-accent);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+
+button[type="submit"]:hover {
+    background-color: var(--color-accent-hover);
+}
+
+input[type="email"],
+textarea {
+    border: 1.5px solid var(--color-border);
+    border-radius: 6px;
+    padding: 0.6rem 0.75rem;
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-family: inherit;
+    font-size: 1rem;
+    transition: border-color 0.15s, outline-color 0.15s;
+}
+
+input[type="email"]:focus,
+textarea:focus {
+    border-color: var(--color-accent);
+    outline: 3px solid var(--color-accent-subtle);
+}
+
+button {
+    min-height: 2.75rem;
+    padding: 0.5rem 1rem;
+}
+
+input, textarea, button {
+    width: 100%;
+    max-width: 100%;
+}
+
+/* === Phase 4: Hero two-column layout on desktop ===
+   Stacked on mobile (preserves info order). Side-by-side on desktop
+   presents name + photo simultaneously — the standard personal-site hero. */
+.hero {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* === Phase 4: CV timeline left-border ===
+   body.cv already exists on cv.html. Left accent border creates the
+   standard "timeline entry" visual rhythm when scanning down the page. */
+.cv article {
+    border-left: 3px solid var(--color-accent);
+    border-radius: 0 8px 8px 0;
+}
+
+.cv article:hover {
+    border-left-color: var(--color-accent);
+}
+
+/* === Supporting rules (unchanged in purpose) === */
+#portfolio-list {
+    list-style: none;
+    display: grid;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+}
+
+figure {
+    margin: 0;
+    padding: 0;
+}
+
+figcaption {
+    color: var(--color-muted);
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+footer {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    line-height: 1;
+    margin-top: 3rem;
+    border-top: 1px solid var(--color-border);
+    padding-top: 1.5rem;
+    padding-bottom: 2rem;
+}
+
+footer p {
+    color: var(--color-muted);
+}
+
+section {
+    margin-block: 3rem;
+}
+
+#index {
+    max-width: 100%;
+    height: auto;
+    min-width: 0;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+article,
+article p,
+article li {
+    max-width: 65ch;
+}
+
+article p,
+article li {
+    font-size: 1rem;
+    line-height: 1.7;
+    font-weight: 400;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+@media print {
+    body {
+        background: #fff;
+        color: #000;
+        padding: 0;
+    }
+    a {
+        color: #000;
+        text-decoration: underline;
+    }
+    nav, header {
+        display: none;
+    }
+    article {
+        background: #fff;
+        box-shadow: none;
+        border: 1px solid #ccc;
+        border-left: none;
+        padding: 20px;
+        border-radius: 0;
+        break-inside: avoid;
+    }
+    figcaption, footer p, h1 + p {
+        color: #555;
+    }
+}
+
+@media (max-width: 40rem) {
+    body {
+        padding-inline: 1rem;
+    }
+    section {
+        margin-block: 1.5rem;
+    }
+}
+
+@media (min-width: 48rem) {
+    .hero {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 3rem;
+    }
+
+    .hero > :first-child {
+        flex: 1;
+    }
+
+    .hero img {
+        width: 40%;
+        max-width: 20rem;
+        border-radius: 12px;
+        object-fit: cover;
+        aspect-ratio: 1 / 1;
+    }
+
+    #portfolio-list {
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+    }
+}
+
+@media (min-width: 64rem) {
+    #portfolio-list {
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+    }
+}

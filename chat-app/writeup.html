@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat App Design</title>
+  <link rel="stylesheet" href="writeupstyle.css">
+</head>
+<body>
+  <h1>Chat App Design Writeup</h1>
+  <p>Jonathan Zhao</p>
+  <section>
+    <h2>Actions:</h2>
+    <div>
+        <h3>1. Create Chat</h3>
+        <p><b>What:</b> Post a chat Graffiti object with a user-specified title and random channel UUID. </p>
+        <p> <b>Example Object JSON:</b></p>
+        <code>
+            {
+                "value": {
+                "activity": "Create",
+                "type": "Chat",
+                "title": "6.4500 Study Group",
+                "channel": "d222491b-d6d0-4c21-aadd-45ed9bc21566",
+                "published": 1777065600000
+                },
+                "channels": ["designftw-26"]
+            }
+        </code>
+        <p>
+            <b>Where:</b> Posted to the shared directory channel "designftw-26", so new chats are discoverable by everyone. 
+            subject to change in the future with actual API and security features. 
+        </p>
+        <p>
+            <b>Who:</b> Currently anyone in the shared directory channel "designftw-26" can create a chat. Anyone in "designftw-26" can see new chats.
+        </p>
+    </div>
+    <div>
+        <h3>2. Join Chat</h3>
+        <p><b>What:</b> Post a join Graffiti object with an existing, user-specified chat channel UUID. </p>
+        <p> <b>Example Object JSON:</b></p>
+        <code>
+            {
+                "value": {
+                "activity": "Join",
+                "target": "d222491b-d6d0-4c21-aadd-45ed9bc21566",
+                "published": 1777065605000
+                },
+                "channels": ["d222491b-d6d0-4c21-aadd-45ed9bc21566"]
+            }
+        </code>
+        <p>
+            <b>Where:</b> Posted to the specified channel UUID, so membership is tied to that specific chat room.
+        </p>
+        <p>
+            <b>Who:</b> Currently anyone in the shared directory channel "designftw-26" can join any chat, visible from the chat list on the left.
+        </p>
+    </div>
+    <div>
+        <h3>3. Send Message</h3>
+        <p><b>What:</b> Post a message Graffiti object with a content field and published timestamp. </p>
+        <p> <b>Example Object JSON:</b></p>
+        <code>
+            {
+                "value": {
+                  "content": "Can someone explain problem 3?",
+                  "published": 1777065610000
+                },
+                "channels": ["d222491b-d6d0-4c21-aadd-45ed9bc21566"]
+              }
+        </code>
+        <p>
+            <b>Where:</b> Directly in the current chat channel, so messages are visible to everyone in the chat. Discover messages from the same channel using schema filtering.
+        </p>
+        <p>
+            <b>Who:</b> Public to everyone in the current chat channel.
+        </p>
+    </div>
+    <div>
+        <h3>4. Pin Message</h3>
+        <p><b>What:</b> Post a pin Graffiti object with a target message URL field, content field for the message, timestamp.</p>
+        <p> <b>Example Object JSON:</b></p>
+        <code>
+            {
+                "value": {
+                  "content": "Can someone explain problem 3?",
+                  "published": 1777065610000
+                },
+                "channels": ["d222491b-d6d0-4c21-aadd-45ed9bc21566"]
+              }
+        </code>
+        <p>
+            <b>Where:</b> Posted to the current chat channel. Discovered from the same channel and shown in the pinned section on the right.</p>
+        <p>
+            <b>Who:</b> Public in the chat channel. Pinning does not make the message private in any way.
+        </p>
+    </div>
+</section>
+</body>
+</html>
