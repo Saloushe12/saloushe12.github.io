@@ -1,0 +1,49 @@
+<li class="message-row" :class="{ 'message-row--actions-open': isActionsOpen }">
+  <div
+    class="message-row-tap"
+    role="button"
+    tabindex="0"
+    @click="$emit('toggle')"
+    @keydown.enter.prevent="$emit('toggle')"
+    @keydown.space.prevent="$emit('toggle')"
+  >
+    <strong>
+      <colored-actor-handle :actor="message.actor" :color-channel="channel" />
+    </strong>
+    : {{ message.value.content || (hasMedia ? "[media]" : "") }}
+    <div v-if="hasMedia" class="message-media-wrap">
+      <graffiti-get-media
+        v-if="isImage"
+        class="message-media"
+        :url="message.value.mediaUrl"
+        :accept="{ types: ['image/*'] }"
+      />
+      <graffiti-get-media
+        v-else-if="isVideo"
+        class="message-media"
+        :url="message.value.mediaUrl"
+        :accept="{ types: ['video/*'] }"
+      />
+      <p v-if="message.value.mediaName" class="message-media-name">
+        {{ message.value.mediaName }}
+      </p>
+    </div>
+  </div>
+  <div v-show="isActionsOpen" class="message-actions" @click.stop>
+    <button
+      type="button"
+      @click="$emit('add-to-board')"
+      :disabled="isOnBoard || isAddingToBoard"
+    >
+      {{ addLabel }}
+    </button>
+    <button
+      v-if="canDelete"
+      type="button"
+      @click="$emit('delete')"
+      :disabled="isDeletingMsg"
+    >
+      {{ deleteLabel }}
+    </button>
+  </div>
+</li>

@@ -1,0 +1,32 @@
+<li
+  class="chat-list-item"
+  :class="{ 'chat-list-item--active': isActive }"
+  draggable="true"
+  @dragstart="$emit('drag-start', $event)"
+>
+  <router-link class="chat-list-button" :to="chatRoute">
+    <span class="chat-list-avatar" aria-hidden="true">
+      <graffiti-get-media
+        v-if="chat.value.icon"
+        class="chat-list-avatar-media"
+        :url="chat.value.icon"
+        :accept="{ types: ['image/*'] }"
+      />
+      <span v-else class="chat-list-avatar-placeholder">{{ avatarLetter() }}</span>
+    </span>
+    <span class="chat-list-main">
+      <span class="chat-list-title">{{ chat.value.title }}</span>
+      <span class="chat-list-preview">
+        <span v-if="lastMessage" class="chat-list-preview-line">
+          <colored-actor-handle
+            :actor="lastMessage.actor"
+            :color-channel="chat.value.channel"
+          />
+          <span class="chat-list-preview-colon">:</span>
+          <span class="chat-list-preview-msg">{{ previewSnippet }}</span>
+        </span>
+        <span v-else class="chat-list-preview-empty">No messages yet</span>
+      </span>
+    </span>
+  </router-link>
+</li>
