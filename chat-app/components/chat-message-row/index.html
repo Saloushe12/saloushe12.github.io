@@ -12,18 +12,18 @@
     </strong>
     : {{ message.value.content || (hasMedia ? "[media]" : "") }}
     <div v-if="hasMedia" class="message-media-wrap">
-      <graffiti-get-media
-        v-if="isImage"
-        class="message-media"
-        :url="message.value.mediaUrl"
-        :accept="{ types: ['image/*'] }"
-      />
-      <graffiti-get-media
-        v-else-if="isVideo"
-        class="message-media"
-        :url="message.value.mediaUrl"
-        :accept="{ types: ['video/*'] }"
-      />
+      <div v-if="isImage" class="message-media">
+        <graffiti-get-media
+          :url="message.value.mediaUrl"
+          :accept="{ types: ['image/*'] }"
+        />
+      </div>
+      <div v-else-if="isVideo" class="message-media">
+        <graffiti-get-media
+          :url="message.value.mediaUrl"
+          :accept="{ types: ['video/*'] }"
+        />
+      </div>
       <p v-if="message.value.mediaName" class="message-media-name">
         {{ message.value.mediaName }}
       </p>

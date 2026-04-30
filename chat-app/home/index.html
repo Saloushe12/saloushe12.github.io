@@ -318,18 +318,18 @@
             >
                 ×
             </button>
-            <graffiti-get-media
-                v-if="boardMediaPreview.kind === 'image'"
-                class="board-media-modal-content"
-                :url="boardMediaPreview.url"
-                :accept="{ types: ['image/*'] }"
-            />
-            <graffiti-get-media
-                v-else
-                class="board-media-modal-content"
-                :url="boardMediaPreview.url"
-                :accept="{ types: ['video/*'] }"
-            />
+            <div class="board-media-modal-content">
+                <graffiti-get-media
+                    v-if="boardMediaPreview.kind === 'image'"
+                    :url="boardMediaPreview.url"
+                    :accept="{ types: ['image/*'] }"
+                />
+                <graffiti-get-media
+                    v-else
+                    :url="boardMediaPreview.url"
+                    :accept="{ types: ['video/*'] }"
+                />
+            </div>
         </div>
     </div>
 </main>
