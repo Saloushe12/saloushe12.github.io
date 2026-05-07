@@ -37,4 +37,10 @@
       </span>
     </span>
   </router-link>
+  <div class="chat-list-id-row">
+    <code class="chat-list-id" :title="channelId">{{ channelId }}</code>
+    <button type="button" class="chat-list-id-copy" @click="copyChannelId($event)">
+      {{ idCopied ? "Copied" : "Copy ID" }}
+    </button>
+  </div>
 </li>

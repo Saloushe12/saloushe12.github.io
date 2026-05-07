@@ -1300,6 +1300,30 @@ input[type="text"] {
     justify-content: center;
 }
 
+.chat-list-id-row {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0 0.7rem 0.5rem;
+}
+
+.chat-list-id {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.68rem;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.chat-list-id-copy {
+    flex-shrink: 0;
+    padding: 0.18rem 0.45rem;
+    font-size: 0.68rem;
+    border-radius: 999px;
+}
+
 .chat-list-title {
     font-size: 1.05rem;
     font-weight: 700;
@@ -1361,6 +1385,26 @@ input[type="text"] {
     min-height: 0;
     flex: 1 1 auto;
     padding-right: 0.25rem;
+}
+
+.chat-channel-row {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.chat-channel-id {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.chat-channel-copy {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.74rem;
+    border-radius: 999px;
 }
 
 .message-list {

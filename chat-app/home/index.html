@@ -149,6 +149,12 @@
                     }}
                 </button>
             </div>
+            <div class="chat-channel-row" v-if="channel">
+                <code class="chat-channel-id" :title="channel">{{ channel }}</code>
+                <button type="button" class="chat-channel-copy" @click="copySelectedChannelId()">
+                    {{ channelCopyStatus || "Copy ID" }}
+                </button>
+            </div>
             <p v-if="joinError" class="error">{{ joinError }}</p>
             <p class="muted" v-if="channel">Joined participants: {{ joinCount }}</p>
 

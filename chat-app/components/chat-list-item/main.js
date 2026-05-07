@@ -32,10 +32,32 @@ export default async () => {
         if (this.lastMessage.value.mediaKind === "video") return "[Video]";
         return "[Attachment]";
       },
+      channelId() {
+        return this.chat?.value?.channel || "";
+      },
+    },
+    data() {
+      return {
+        idCopied: false,
+      };
     },
     methods: {
       avatarLetter() {
         return this.chatAvatarInitial(this.chat);
+      },
+      async copyChannelId(event) {
+        event?.preventDefault?.();
+        event?.stopPropagation?.();
+        if (!this.channelId || !navigator?.clipboard?.writeText) return;
+        try {
+          await navigator.clipboard.writeText(this.channelId);
+          this.idCopied = true;
+          window.setTimeout(() => {
+            this.idCopied = false;
+          }, 1100);
+        } catch {
+          this.idCopied = false;
+        }
       },
     },
     template: await fetch(new URL("./index.html", import.meta.url)).then((r) =>

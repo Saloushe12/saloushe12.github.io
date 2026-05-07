@@ -83,6 +83,7 @@ export function chatRoomSetup() {
   const isResizingLeftPanel = ref(false);
   const isResizingRightPanel = ref(false);
   const isPinboardTrayAnimating = ref(false);
+  const channelCopyStatus = ref("");
   const boardResizeSession = ref(null);
   /** Message row whose Add / Delete actions are visible (toggle by clicking the message). */
   const openMessageActionsUrl = ref(null);
@@ -1152,6 +1153,20 @@ export function chatRoomSetup() {
     boardMediaPreview.value = null;
   }
 
+  async function copySelectedChannelId() {
+    const id = channel.value;
+    if (!id || !navigator?.clipboard?.writeText) return;
+    try {
+      await navigator.clipboard.writeText(id);
+      channelCopyStatus.value = "Copied";
+      window.setTimeout(() => {
+        channelCopyStatus.value = "";
+      }, 1100);
+    } catch {
+      channelCopyStatus.value = "";
+    }
+  }
+
   watch(
     () => [
       route.params.chatId,
@@ -1190,6 +1205,7 @@ export function chatRoomSetup() {
     truncatePreview,
     joins,
     joinCount,
+    channelCopyStatus,
     hasJoinedCurrentChat,
     joinError,
     mediaError,
@@ -1240,6 +1256,7 @@ export function chatRoomSetup() {
     boardMediaPreview,
     openBoardMediaPreview,
     closeBoardMediaPreview,
+    copySelectedChannelId,
     onChatDragStart,
     onBoardItemDragStart,
     onBoardDragOver,
