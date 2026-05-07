@@ -4,6 +4,14 @@
   draggable="true"
   @dragstart="$emit('drag-start', $event)"
 >
+  <button
+    type="button"
+    class="chat-list-pin"
+    @click.stop="$emit('pin-chat')"
+    :disabled="isPinnedToBoard"
+  >
+    {{ isPinnedToBoard ? "Pinned" : "Pin" }}
+  </button>
   <router-link class="chat-list-button" :to="chatRoute">
     <span class="chat-list-avatar" aria-hidden="true">
       <graffiti-get-media

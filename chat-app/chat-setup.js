@@ -1,4 +1,4 @@
-import { ref, computed, provide, watch } from "vue";
+import { ref, computed, provide, watch, onBeforeUnmount } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
   useGraffiti,
@@ -24,6 +24,10 @@ const VIDEO_COMPRESS_THRESHOLD_BYTES = 12 * 1024 * 1024;
 const VIDEO_MAX_WIDTH = 960;
 const VIDEO_MAX_HEIGHT = 540;
 const VIDEO_TARGET_BITRATE = 1_100_000;
+const LEFT_PANEL_DEFAULT_WIDTH = 320;
+const LEFT_COLLAPSED_PANEL_WIDTH = 0;
+const RIGHT_PANEL_DEFAULT_WIDTH = 320;
+const RIGHT_COLLAPSED_PANEL_WIDTH = 0;
 
 const boardSchema = {
   properties: {
@@ -59,17 +63,27 @@ export function chatRoomSetup() {
   const isUploadingMedia = ref(false);
   const mediaError = ref("");
   const draggingBoardItemUrl = ref("");
-  const activeBoardChatChannel = ref("");
   const boardChatDraftByChannel = ref({});
   const boardChatErrorByChannel = ref({});
   const isSendingBoardChat = ref(new Set());
   const boardMediaPreview = ref(null);
-  const chatNameInput = ref("");
+  const chatActionMode = ref("");
+  const chatActionInput = ref("");
   const isCreatingChat = ref(false);
   const isJoiningChat = ref(false);
   const joinError = ref("");
   const isAddingMessageToBoard = ref(new Set());
   const isRemovingBoardItem = ref(new Set());
+  const chatTileHeightByUrl = ref({});
+  const mediaTileSizeByUrl = ref({});
+  const leftPanelWidth = ref(LEFT_PANEL_DEFAULT_WIDTH);
+  const rightPanelWidth = ref(RIGHT_PANEL_DEFAULT_WIDTH);
+  const isLeftPanelCollapsed = ref(false);
+  const isRightPanelCollapsed = ref(false);
+  const isResizingLeftPanel = ref(false);
+  const isResizingRightPanel = ref(false);
+  const isPinboardTrayAnimating = ref(false);
+  const boardResizeSession = ref(null);
   /** Message row whose Add / Delete actions are visible (toggle by clicking the message). */
   const openMessageActionsUrl = ref(null);
 
@@ -313,6 +327,153 @@ export function chatRoomSetup() {
     return selectedChat.value?.value.title || "No chat selected";
   });
 
+  const appLayoutStyle = computed(() => ({
+    "--left-panel-width": `${isLeftPanelCollapsed.value ? LEFT_COLLAPSED_PANEL_WIDTH : leftPanelWidth.value}px`,
+    "--right-panel-width": `${isRightPanelCollapsed.value ? RIGHT_COLLAPSED_PANEL_WIDTH : rightPanelWidth.value}px`,
+  }));
+
+  function toggleLeftPanel() {
+    isLeftPanelCollapsed.value = !isLeftPanelCollapsed.value;
+  }
+
+  let pinboardAnimTimer = null;
+  function toggleRightPanel() {
+    isRightPanelCollapsed.value = !isRightPanelCollapsed.value;
+    isPinboardTrayAnimating.value = true;
+    if (pinboardAnimTimer) clearTimeout(pinboardAnimTimer);
+    pinboardAnimTimer = window.setTimeout(() => {
+      isPinboardTrayAnimating.value = false;
+      pinboardAnimTimer = null;
+    }, 260);
+  }
+
+  function stopLeftPanelResize() {
+    if (!isResizingLeftPanel.value) return;
+    isResizingLeftPanel.value = false;
+    window.removeEventListener("mousemove", onLeftPanelResizeMove);
+    window.removeEventListener("mouseup", stopLeftPanelResize);
+  }
+
+  function rightPanelMaxWidth() {
+    return Math.max(RIGHT_PANEL_DEFAULT_WIDTH, Math.floor(window.innerWidth / 3));
+  }
+
+  function stopRightPanelResize() {
+    if (!isResizingRightPanel.value) return;
+    isResizingRightPanel.value = false;
+    window.removeEventListener("mousemove", onRightPanelResizeMove);
+    window.removeEventListener("mouseup", stopRightPanelResize);
+  }
+
+  function boardTileMaxSize() {
+    return Math.max(220, Math.floor(rightPanelWidth.value - 44));
+  }
+
+  function stopBoardTileResize() {
+    if (!boardResizeSession.value) return;
+    boardResizeSession.value = null;
+    window.removeEventListener("mousemove", onBoardTileResizeMove);
+    window.removeEventListener("mouseup", stopBoardTileResize);
+  }
+
+  function clampBoardTileValue(value, minValue) {
+    return Math.min(boardTileMaxSize(), Math.max(minValue, Math.round(value)));
+  }
+
+  function onBoardTileResizeMove(event) {
+    const session = boardResizeSession.value;
+    if (!session) return;
+    const deltaY = event.clientY - session.startY;
+    const signedDelta = session.edge === "bottom" ? deltaY : -deltaY;
+    const next = clampBoardTileValue(session.startValue + signedDelta, session.minValue);
+    if (session.kind === "chat") {
+      chatTileHeightByUrl.value = {
+        ...chatTileHeightByUrl.value,
+        [session.url]: next,
+      };
+      return;
+    }
+    mediaTileSizeByUrl.value = {
+      ...mediaTileSizeByUrl.value,
+      [session.url]: next,
+    };
+  }
+
+  function startBoardTileResize(item, kind, edge, event) {
+    if (!item?.url) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const tile = event.currentTarget?.closest?.(".board-tile");
+    if (!tile) return;
+    const rect = tile.getBoundingClientRect();
+    const initial = kind === "chat" ? rect.height : rect.width;
+    boardResizeSession.value = {
+      url: item.url,
+      kind,
+      edge,
+      startY: event.clientY,
+      startValue: initial,
+      minValue: initial,
+    };
+    window.addEventListener("mousemove", onBoardTileResizeMove);
+    window.addEventListener("mouseup", stopBoardTileResize);
+  }
+
+  function boardChatTileStyle(item) {
+    const h = chatTileHeightByUrl.value[item?.url];
+    return h ? { minHeight: `${h}px` } : {};
+  }
+
+  function boardMediaTileStyle(item) {
+    const s = mediaTileSizeByUrl.value[item?.url];
+    return s
+      ? {
+          width: `${s}px`,
+          height: `${s}px`,
+          minWidth: `${s}px`,
+          minHeight: `${s}px`,
+          aspectRatio: "auto",
+          justifySelf: "start",
+        }
+      : {};
+  }
+
+  function onLeftPanelResizeMove(event) {
+    const leftMin = window.innerWidth >= 1200 ? 250 : 200;
+    const next = Math.round(
+      Math.min(
+        400,
+        Math.max(leftMin, event.clientX),
+      ),
+    );
+    leftPanelWidth.value = next;
+  }
+
+  function startLeftPanelResize(event) {
+    if (isLeftPanelCollapsed.value) return;
+    event.preventDefault();
+    isResizingLeftPanel.value = true;
+    window.addEventListener("mousemove", onLeftPanelResizeMove);
+    window.addEventListener("mouseup", stopLeftPanelResize);
+  }
+
+  function onRightPanelResizeMove(event) {
+    const desired = Math.round(window.innerWidth - event.clientX);
+    const next = Math.min(
+      rightPanelMaxWidth(),
+      Math.max(RIGHT_PANEL_DEFAULT_WIDTH, desired),
+    );
+    rightPanelWidth.value = next;
+  }
+
+  function startRightPanelResize(event) {
+    if (isRightPanelCollapsed.value) return;
+    event.preventDefault();
+    isResizingRightPanel.value = true;
+    window.addEventListener("mousemove", onRightPanelResizeMove);
+    window.addEventListener("mouseup", stopRightPanelResize);
+  }
+
   async function postJoinActivity(targetChannel) {
     if (!session.value) return;
     await graffiti.post(
@@ -380,11 +541,34 @@ export function chatRoomSetup() {
     );
   }
 
+  function openCreatePrompt() {
+    chatActionMode.value = "create";
+    chatActionInput.value = "";
+    joinError.value = "";
+  }
+
+  function openJoinPrompt() {
+    chatActionMode.value = "join";
+    chatActionInput.value = "";
+    joinError.value = "";
+  }
+
+  function cancelChatAction() {
+    if (isCreatingChat.value || isJoiningChat.value) return;
+    chatActionMode.value = "";
+    chatActionInput.value = "";
+  }
+
   async function createChatByName() {
     if (!session.value) return;
-    const title = chatNameInput.value.trim();
+    const title = chatActionInput.value.trim();
     if (!title) {
       joinError.value = "Enter a chat name to create.";
+      return;
+    }
+    if (findChatByTrimmedName(title)) {
+      joinError.value =
+        "A chat with that name already exists. Pick a different name.";
       return;
     }
     joinError.value = "";
@@ -409,22 +593,24 @@ export function chatRoomSetup() {
       };
       selectChat(createdChat);
       await postJoinActivity(chatChannel);
-      chatNameInput.value = "";
+      chatActionInput.value = "";
+      chatActionMode.value = "";
     } finally {
       isCreatingChat.value = false;
     }
   }
 
-  async function joinChatByName() {
+  async function joinChatByChannelId() {
     if (!session.value) return;
-    const name = chatNameInput.value.trim();
-    if (!name) {
-      joinError.value = "Enter a chat name to join.";
+    const channelId = chatActionInput.value.trim();
+    if (!channelId) {
+      joinError.value = "Enter a chat/channel ID to join.";
       return;
     }
-    const hit = findChatByTrimmedName(name);
+    const hit =
+      sortedChats.value.find((c) => c.value.channel === channelId) ?? null;
     if (!hit) {
-      joinError.value = "No chat found with that name.";
+      joinError.value = "No chat found with that channel ID.";
       return;
     }
     joinError.value = "";
@@ -432,10 +618,21 @@ export function chatRoomSetup() {
     try {
       selectChat(hit);
       await postJoinActivity(hit.value.channel);
-      chatNameInput.value = "";
+      chatActionInput.value = "";
+      chatActionMode.value = "";
     } finally {
       isJoiningChat.value = false;
     }
+  }
+
+  function submitChatAction() {
+    if (chatActionMode.value === "create") {
+      return createChatByName();
+    }
+    if (chatActionMode.value === "join") {
+      return joinChatByChannelId();
+    }
+    return undefined;
   }
 
   async function joinCurrentChat() {
@@ -474,16 +671,6 @@ export function chatRoomSetup() {
     if (!chatChannel) return [];
     const list = messagesByChannelNewest.value[chatChannel] || [];
     return list.slice(0, limit);
-  }
-
-  function isBoardChatOpen(chatChannel) {
-    return activeBoardChatChannel.value === chatChannel;
-  }
-
-  function openBoardChat(chatChannel) {
-    if (!chatChannel) return;
-    activeBoardChatChannel.value =
-      activeBoardChatChannel.value === chatChannel ? "" : chatChannel;
   }
 
   function boardChatDraft(chatChannel) {
@@ -758,6 +945,24 @@ export function chatRoomSetup() {
     }
   }
 
+  async function removeMessageFromBoard(messageUrl) {
+    if (!session.value || !messageUrl) return;
+    const existing = boardObjects.value.find(
+      (o) => o.value.kind === "message" && o.value.messageUrl === messageUrl,
+    );
+    if (!existing) return;
+    await removeBoardItem(existing);
+  }
+
+  async function toggleMessageOnBoard(message) {
+    if (!message?.url) return;
+    if (boardMessageUrls.value.has(message.url)) {
+      await removeMessageFromBoard(message.url);
+      return;
+    }
+    await addMessageToBoard(message);
+  }
+
   async function addChatRefToBoard(payload) {
     if (!payload.chatChannel || boardChatChannels.value.has(payload.chatChannel)) {
       return;
@@ -769,6 +974,14 @@ export function chatRoomSetup() {
       chatChannel: payload.chatChannel,
       chatTitle: payload.chatTitle,
       ...(payload.chatIcon ? { chatIcon: payload.chatIcon } : {}),
+    });
+  }
+
+  async function pinChatFromList(chat) {
+    await addChatRefToBoard({
+      chatChannel: chat?.value?.channel || "",
+      chatTitle: chat?.value?.title || "Chat",
+      chatIcon: chat?.value?.icon || undefined,
     });
   }
 
@@ -950,6 +1163,16 @@ export function chatRoomSetup() {
     { immediate: true },
   );
 
+  onBeforeUnmount(() => {
+    stopLeftPanelResize();
+    stopRightPanelResize();
+    stopBoardTileResize();
+    if (pinboardAnimTimer) {
+      clearTimeout(pinboardAnimTimer);
+      pinboardAnimTimer = null;
+    }
+  });
+
   provide("actorColorStyle", actorColorStyle);
   provide("chatAvatarInitial", chatAvatarInitial);
   provide("truncatePreview", truncatePreview);
@@ -979,6 +1202,20 @@ export function chatRoomSetup() {
     areBoardLoading,
     sortedBoardItems,
     boardMessageUrls,
+    boardChatChannels,
+    appLayoutStyle,
+    isLeftPanelCollapsed,
+    isRightPanelCollapsed,
+    isResizingLeftPanel,
+    isResizingRightPanel,
+    isPinboardTrayAnimating,
+    toggleLeftPanel,
+    toggleRightPanel,
+    startLeftPanelResize,
+    startRightPanelResize,
+    startBoardTileResize,
+    boardChatTileStyle,
+    boardMediaTileStyle,
     isCreatingChat,
     isJoiningChat,
     isSending,
@@ -990,9 +1227,8 @@ export function chatRoomSetup() {
     isDeleting,
     deleteMessage,
     addMessageToBoard,
+    toggleMessageOnBoard,
     boardRecentMessages,
-    isBoardChatOpen,
-    openBoardChat,
     boardChatDraft,
     setBoardChatDraft,
     boardChatError,
@@ -1008,11 +1244,17 @@ export function chatRoomSetup() {
     onBoardItemDragStart,
     onBoardDragOver,
     onBoardDrop,
+    pinChatFromList,
     createChatByName,
-    joinChatByName,
+    joinChatByChannelId,
+    openCreatePrompt,
+    openJoinPrompt,
+    cancelChatAction,
+    submitChatAction,
     joinCurrentChat,
     leaveCurrentChat,
-    chatNameInput,
+    chatActionMode,
+    chatActionInput,
     selectChat,
     openMessageActionsUrl,
     toggleMessageActions,

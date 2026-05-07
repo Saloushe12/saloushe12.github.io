@@ -1,23 +1,48 @@
-<main class="app-layout">
-    <aside class="left-panel">
+<main class="app-layout" :style="appLayoutStyle">
+    <aside class="left-panel" :class="{ 'panel-collapsed': isLeftPanelCollapsed }">
         <div class="panel-head panel-head--centered">
             <h2 class="panel-title-plain">Chats</h2>
         </div>
-        <p v-if="channel" class="muted muted--center muted--compact">
-            Directory: <code>{{ DIRECTORY_CHANNEL }}</code>
-        </p>
-        <div v-if="channel" class="chat-name-row chat-name-row--compact">
-            <input type="text" v-model="chatNameInput" placeholder="Chat name" />
+        <div v-if="channel && !isLeftPanelCollapsed" class="chat-name-row chat-name-row--compact">
             <div class="chat-name-actions">
-                <button type="button" @click="createChatByName()" :disabled="isCreatingChat">
-                    {{ isCreatingChat ? "Creating…" : "Create" }}
+                <button type="button" @click="openCreatePrompt()" :disabled="isCreatingChat || isJoiningChat">
+                    {{ chatActionMode === "create" && isCreatingChat ? "Creating…" : "Create" }}
                 </button>
-                <button type="button" @click="joinChatByName()" :disabled="isJoiningChat">
-                    {{ isJoiningChat ? "Joining…" : "Join" }}
+                <button type="button" @click="openJoinPrompt()" :disabled="isCreatingChat || isJoiningChat">
+                    {{ chatActionMode === "join" && isJoiningChat ? "Joining…" : "Join" }}
                 </button>
             </div>
+            <div v-if="chatActionMode" class="chat-action-input-row">
+                <input
+                    type="text"
+                    v-model="chatActionInput"
+                    :placeholder="chatActionMode === 'create' ? 'New chat name' : 'Chat/channel ID'"
+                    @keydown.enter.prevent="submitChatAction()"
+                />
+                <div class="chat-action-controls">
+                    <button type="button" @click="submitChatAction()" :disabled="isCreatingChat || isJoiningChat">
+                        {{
+                            chatActionMode === "create"
+                                ? isCreatingChat
+                                    ? "Creating…"
+                                    : "Create Chat"
+                                : isJoiningChat
+                                  ? "Joining…"
+                                  : "Join by ID"
+                        }}
+                    </button>
+                    <button
+                        type="button"
+                        class="chat-action-cancel"
+                        @click="cancelChatAction()"
+                        :disabled="isCreatingChat || isJoiningChat"
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </div>
         </div>
-        <div class="left-panel-body">
+        <div v-show="!isLeftPanelCollapsed" class="left-panel-body">
             <p v-if="areChatsLoading"><em>Loading chats...</em></p>
             <ul v-else class="chat-list">
                 <chat-list-item
@@ -27,10 +52,30 @@
                     :chat-id="chat.value.channel"
                     :selected-channel="channel"
                     :last-message="lastMessageFor(chat)"
+                    :is-pinned-to-board="boardChatChannels.has(chat.value.channel)"
                     @drag-start="onChatDragStart(chat, $event)"
+                    @pin-chat="pinChatFromList(chat)"
                 />
             </ul>
         </div>
+        <div
+            class="left-panel-resize-handle"
+            role="separator"
+            aria-orientation="vertical"
+            title="Resize chats panel"
+            @mousedown="startLeftPanelResize"
+        ></div>
+        <button
+            type="button"
+            class="chat-edge-handle"
+            :aria-label="isLeftPanelCollapsed ? 'Open chats tray' : 'Close chats tray'"
+            @click="toggleLeftPanel()"
+        >
+            <span class="chat-edge-handle-glyph">
+                {{ isLeftPanelCollapsed ? "›" : "‹" }}
+            </span>
+            <span class="chat-edge-handle-label">Chats</span>
+        </button>
     </aside>
 
     <section class="middle-panel" :class="{ 'middle-panel--landing': !channel }">
@@ -38,18 +83,43 @@
             <div class="middle-landing">
                 <div class="chat-setup-hero">
                     <h2 class="chat-setup-hero-title">Create or join a chat</h2>
-                    <p class="muted chat-setup-hero-directory">
-                        Directory: <code>{{ DIRECTORY_CHANNEL }}</code>
-                    </p>
                     <div class="chat-name-row chat-name-row--hero">
-                        <input type="text" v-model="chatNameInput" placeholder="Chat name" />
                         <div class="chat-name-actions">
-                            <button type="button" @click="createChatByName()" :disabled="isCreatingChat">
-                                {{ isCreatingChat ? "Creating…" : "Create" }}
+                            <button type="button" @click="openCreatePrompt()" :disabled="isCreatingChat || isJoiningChat">
+                                {{ chatActionMode === "create" && isCreatingChat ? "Creating…" : "Create" }}
                             </button>
-                            <button type="button" @click="joinChatByName()" :disabled="isJoiningChat">
-                                {{ isJoiningChat ? "Joining…" : "Join" }}
+                            <button type="button" @click="openJoinPrompt()" :disabled="isCreatingChat || isJoiningChat">
+                                {{ chatActionMode === "join" && isJoiningChat ? "Joining…" : "Join" }}
                             </button>
+                        </div>
+                        <div v-if="chatActionMode" class="chat-action-input-row">
+                            <input
+                                type="text"
+                                v-model="chatActionInput"
+                                :placeholder="chatActionMode === 'create' ? 'New chat name' : 'Chat/channel ID'"
+                                @keydown.enter.prevent="submitChatAction()"
+                            />
+                            <div class="chat-action-controls">
+                                <button type="button" @click="submitChatAction()" :disabled="isCreatingChat || isJoiningChat">
+                                    {{
+                                        chatActionMode === "create"
+                                            ? isCreatingChat
+                                                ? "Creating…"
+                                                : "Create Chat"
+                                            : isJoiningChat
+                                              ? "Joining…"
+                                              : "Join by ID"
+                                    }}
+                                </button>
+                                <button
+                                    type="button"
+                                    class="chat-action-cancel"
+                                    @click="cancelChatAction()"
+                                    :disabled="isCreatingChat || isJoiningChat"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <p v-if="joinError" class="error chat-setup-hero-error">{{ joinError }}</p>
@@ -79,9 +149,8 @@
                     }}
                 </button>
             </div>
-            <p class="muted" v-if="channel">Channel: <code>{{ channel }}</code></p>
             <p v-if="joinError" class="error">{{ joinError }}</p>
-            <p class="muted" v-if="channel">Joined actors: {{ joinCount }}</p>
+            <p class="muted" v-if="channel">Joined participants: {{ joinCount }}</p>
 
             <div class="messages-scroll">
                 <p v-if="areMessageObjectsLoading"><em>Loading messages...</em></p>
@@ -98,10 +167,11 @@
                             :is-actions-open="openMessageActionsUrl === entry.object.url"
                             :is-on-board="boardMessageUrls.has(entry.object.url)"
                             :is-adding-to-board="isAddingMessageToBoard.has(entry.object.url)"
+                            :is-removing-from-board="isRemovingBoardItem.has(entry.object.url)"
                             :is-deleting-msg="isDeleting.has(entry.object.url)"
                             :can-delete="entry.object.actor === $graffitiSession.value?.actor"
                             @toggle="toggleMessageActions(entry.object.url)"
-                            @add-to-board="addMessageToBoard(entry.object)"
+                            @toggle-board="toggleMessageOnBoard(entry.object)"
                             @delete="deleteMessage(entry.object)"
                         />
                     </template>
@@ -163,13 +233,20 @@
         </template>
     </section>
 
-    <aside class="right-panel right-panel--board">
+    <aside
+        class="right-panel right-panel--board"
+        :class="{
+            'panel-collapsed': isRightPanelCollapsed,
+            'pinboard-tray-animating': isPinboardTrayAnimating
+        }"
+    >
         <header class="pinboard-header">
             <h2 class="pinboard-title">Pinboard</h2>
             <p class="pinboard-subtitle">Drag and drop images and chats here!</p>
         </header>
 
         <div
+            v-show="!isRightPanelCollapsed"
             class="board-body"
             @dragover="onBoardDragOver"
             @drop="onBoardDrop"
@@ -184,6 +261,13 @@
                     :key="item.url"
                     class="board-tile"
                     :class="'board-tile--' + item.value.kind"
+                    :style="
+                        item.value.kind === 'chat'
+                            ? boardChatTileStyle(item)
+                            : item.value.kind === 'media'
+                              ? boardMediaTileStyle(item)
+                              : {}
+                    "
                     draggable="true"
                     @dragstart="onBoardItemDragStart(item, $event)"
                     @dragover.prevent
@@ -200,11 +284,7 @@
                     </div>
 
                     <div v-else-if="item.value.kind === 'chat'" class="board-tile-fill board-tile--chat-inner">
-                        <button
-                            type="button"
-                            class="board-chat-header"
-                            @click.stop="openBoardChat(item.value.chatChannel)"
-                        >
+                        <div class="board-chat-header">
                             <span class="board-tile-chat-icon">
                                 <graffiti-get-media
                                     v-if="item.value.chatIcon"
@@ -218,11 +298,9 @@
                             </span>
                             <span class="board-chat-header-main">
                                 <span class="board-tile-chat-title">{{ item.value.chatTitle }}</span>
-                                <span class="board-chat-open-hint muted">
-                                    {{ isBoardChatOpen(item.value.chatChannel) ? "Hide composer" : "Open composer" }}
-                                </span>
+                                <span class="board-chat-open-hint muted">Quick compose</span>
                             </span>
-                        </button>
+                        </div>
                         <ul class="board-chat-preview-list">
                             <li
                                 v-for="msg in boardRecentMessages(item.value.chatChannel, 3)"
@@ -243,7 +321,6 @@
                             </li>
                         </ul>
                         <form
-                            v-if="isBoardChatOpen(item.value.chatChannel)"
                             class="board-chat-compose"
                             @submit.prevent="sendBoardChatMessage(item.value.chatChannel)"
                         >
@@ -274,6 +351,16 @@
                                 "
                             />
                         </form>
+                        <div
+                            class="board-tile-resize-edge board-tile-resize-edge--top"
+                            title="Resize chat tile"
+                            @mousedown.stop="startBoardTileResize(item, 'chat', 'top', $event)"
+                        ></div>
+                        <div
+                            class="board-tile-resize-edge board-tile-resize-edge--bottom"
+                            title="Resize chat tile"
+                            @mousedown.stop="startBoardTileResize(item, 'chat', 'bottom', $event)"
+                        ></div>
                     </div>
 
                     <button
@@ -286,6 +373,16 @@
                             :url="item.value.mediaUrl"
                             :accept="{ types: ['image/*', 'video/*'] }"
                         />
+                        <span
+                            class="board-tile-resize-edge board-tile-resize-edge--top"
+                            title="Resize media tile"
+                            @mousedown.stop.prevent="startBoardTileResize(item, 'media', 'top', $event)"
+                        ></span>
+                        <span
+                            class="board-tile-resize-edge board-tile-resize-edge--bottom"
+                            title="Resize media tile"
+                            @mousedown.stop.prevent="startBoardTileResize(item, 'media', 'bottom', $event)"
+                        ></span>
                     </button>
 
                     <button
@@ -301,6 +398,25 @@
                 </article>
             </div>
         </div>
+        <div
+            v-show="!isRightPanelCollapsed"
+            class="right-panel-resize-handle"
+            role="separator"
+            aria-orientation="vertical"
+            title="Resize pinboard panel"
+            @mousedown="startRightPanelResize"
+        ></div>
+        <button
+            type="button"
+            class="pinboard-edge-handle"
+            :aria-label="isRightPanelCollapsed ? 'Open pinboard tray' : 'Close pinboard tray'"
+            @click="toggleRightPanel()"
+        >
+            <span class="pinboard-edge-handle-glyph">
+                {{ isRightPanelCollapsed ? "‹" : "›" }}
+            </span>
+            <span class="pinboard-edge-handle-label">Pinboard</span>
+        </button>
     </aside>
 
     <div

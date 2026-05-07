@@ -13,9 +13,10 @@ export default async () => {
       chatId: { type: String, required: true },
       selectedChannel: { type: String, default: "" },
       lastMessage: { type: Object, default: null },
+      isPinnedToBoard: { type: Boolean, default: false },
     },
     inject: ["chatAvatarInitial", "truncatePreview"],
-    emits: ["drag-start"],
+    emits: ["drag-start", "pin-chat"],
     computed: {
       isActive() {
         return this.chatId === this.selectedChannel;

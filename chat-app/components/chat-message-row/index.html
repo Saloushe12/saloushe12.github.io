@@ -32,8 +32,8 @@
   <div v-show="isActionsOpen" class="message-actions" @click.stop>
     <button
       type="button"
-      @click="$emit('add-to-board')"
-      :disabled="isOnBoard || isAddingToBoard"
+      @click="$emit('toggle-board')"
+      :disabled="isAddingToBoard || isRemovingFromBoard"
     >
       {{ addLabel }}
     </button>

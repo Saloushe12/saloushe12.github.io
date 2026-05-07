@@ -1,9 +1,54 @@
 <section class="login-route">
-    <div class="login-card">
-        <h1 class="login-card-title">Pinboard</h1>
-        <p class="muted login-card-subtitle">Sign in to continue.</p>
-        <button type="button" class="login-card-button" @click="$graffiti.login()">
-            Log In
+    <div class="login-floaters" aria-hidden="true">
+        <article class="login-floater login-floater--profile">
+            <div class="login-floater-avatar">J</div>
+            <div class="login-floater-bubble">Can you pin this update?</div>
+        </article>
+
+        <article class="login-floater login-floater--media">
+            <img
+                class="login-floater-media"
+                src="https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=900&q=70"
+                alt=""
+            />
+            <p class="login-floater-caption">Moodboard image pinned</p>
+        </article>
+
+        <article class="login-floater login-floater--media-two">
+            <img
+                class="login-floater-media"
+                src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=900&q=70"
+                alt=""
+            />
+            <p class="login-floater-caption">Weekend hangout planning</p>
+        </article>
+
+        <article class="login-floater login-floater--media-three">
+            <img
+                class="login-floater-media"
+                src="https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=900&q=70"
+                alt=""
+            />
+            <p class="login-floater-caption">Birthday party inspo board</p>
+        </article>
+
+        <article class="login-floater login-floater--chat">
+            <p class="login-floater-chat-title">Sprint notes</p>
+            <p class="login-floater-chat-line"><strong>Ari:</strong> I added references.</p>
+            <p class="login-floater-chat-line"><strong>You:</strong> Great, pinning now.</p>
+        </article>
+    </div>
+
+    <div class="login-hero">
+        <p class="login-hero-eyebrow">Collaborative workspace</p>
+        <h1 class="login-hero-title">Pinboard</h1>
+        <p class="muted login-hero-subtitle">
+            Collect messages, media, and chat references into one visual board you can
+            organize in seconds.
+        </p>
+        <button type="button" class="login-hero-cta" @click="$graffiti.login()">
+            Try now
         </button>
+        <p class="muted login-hero-footnote">Sign in to create your board.</p>
     </div>
 </section>

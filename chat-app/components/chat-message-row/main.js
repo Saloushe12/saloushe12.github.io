@@ -14,10 +14,11 @@ export default async () => {
       isActionsOpen: { type: Boolean, default: false },
       isOnBoard: { type: Boolean, default: false },
       isAddingToBoard: { type: Boolean, default: false },
+      isRemovingFromBoard: { type: Boolean, default: false },
       isDeletingMsg: { type: Boolean, default: false },
       canDelete: { type: Boolean, default: false },
     },
-    emits: ["toggle", "add-to-board", "delete"],
+    emits: ["toggle", "toggle-board", "delete"],
     computed: {
       hasMedia() {
         return Boolean(this.message.value.mediaUrl);
@@ -29,7 +30,8 @@ export default async () => {
         return this.message.value.mediaKind === "video";
       },
       addLabel() {
-        if (this.isOnBoard) return "On board";
+        if (this.isRemovingFromBoard) return "Removing…";
+        if (this.isOnBoard) return "Remove from board";
         if (this.isAddingToBoard) return "Adding…";
         return "Add to board";
       },
