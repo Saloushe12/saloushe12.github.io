@@ -12,7 +12,7 @@ export const siteConfig = {
     resume: "/JonathanZhaoSep2026.pdf",
   },
   aboutMe:
-    "I'm a Computer Science & Engineering new grad from MIT (June 2026) who likes building systems from the ground up — databases, ML internals, and full-stack products — where the hard part is the engineering, not the wrapper. I built a relational database engine in Go (GoDB) with Strong Strict 2PL transactions and ARIES-style crash recovery, probed model internals by fine-tuning BERT and causally testing the features it learns through ablation, and shipped production Python at the Simons Electron Microscopy Center and Duet. I'm looking for new-grad software engineering roles — open to NYC and remote, and happy to relocate for the right team.",
+    "I'm a Computer Science & Engineering new grad from MIT (June 2026) who likes building systems from the ground up — databases, kernels, and full-stack products — where the hard part is the engineering, not the wrapper. I built the core of a relational database engine in Go (GoDB) with Strong Strict 2PL transactions and ARIES-style crash recovery, implemented copy-on-write fork and an E1000 NIC driver inside a RISC-V Unix kernel, probed model internals by fine-tuning BERT and causally testing the features it learns through ablation, and shipped a Python library that cryo-EM researchers use at the Simons Electron Microscopy Center. I'm looking for new-grad software engineering roles — open to NYC and remote, and happy to relocate for the right team.",
   skills: [
     "Go",
     "Python",
@@ -95,7 +95,7 @@ export const siteConfig = {
       degree: "B.S. in Computer Science and Engineering",
       dateRange: "2022 – 2026",
       achievements: [
-        "Coursework: Computer Systems Engineering, Operating Systems Engineering, Database Systems, Design & Analysis of Algorithms, Programming in C and Assembly, Software Design, Natural Language Processing, AI, Decision Making & Society",
+        "Coursework: Computer Systems Engineering, Operating System Engineering, Database Systems, Design & Analysis of Algorithms, Programming in C and Assembly, Software Design, Natural Language Processing, AI, Decision Making & Society",
       ],
     },
   ],
