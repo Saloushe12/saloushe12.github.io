@@ -35,14 +35,14 @@ export const siteConfig = {
     {
       name: "GoDB — Relational Database Engine (Go)",
       description:
-        "A relational database engine built from scratch across four labs: heap-file storage, a concurrent CAS-based buffer pool, and a Volcano-style execution engine with four join algorithms (hash, sort-merge, block nested-loop, index nested-loop), grouped aggregation, and full CRUD executors. Implements Strong Strict 2PL with multi-granularity table/tuple locking and wait-for-graph deadlock detection, a rule-based query optimizer (predicate pushdown, priority-ranked physical plan selection), and ARIES-style crash recovery — a checksummed write-ahead log with torn-write detection, a double-buffered log manager enabling group commit, and Analysis/Redo/Undo recovery with fuzzy checkpointing.",
+        "Core components of a relational database engine built from scratch in Go across four labs: slotted-page heap storage with bitmap slot tracking, a concurrent CAS-based buffer pool with pinning and eviction, and Volcano-style executors including grouped aggregation, sort, top-N, block nested-loop join, and full CRUD. Implements Strong Strict 2PL with multi-granularity table/tuple locking and wait-for-graph deadlock detection, and ARIES-style crash recovery — a checksummed write-ahead log with torn-write detection, a double-buffered log manager enabling group commit, and Analysis/Redo/Undo recovery with fuzzy checkpointing.",
       link: "",
       skills: ["Go", "Databases", "Transactions", "Crash Recovery"],
     },
     {
       name: "WaitLess — Real-Time Nightlife Crowdsourcing",
       description:
-        "Full-stack venue crowdsourcing platform (React, Node.js/Express, MongoDB) with Socket.io real-time updates and configurable alert subscriptions triggered by user-defined wait-time and crowd conditions. Geospatial indexing powers location-aware queries, and background snapshots aggregate crowd stats for peak-time forecasting.",
+        "Full-stack venue crowdsourcing platform (React, Node.js/Express, MongoDB) with Socket.io real-time updates and configurable alert subscriptions triggered by user-defined wait-time and crowd conditions. Geofence verification gates the crowdsourced data so only reports from users physically at a venue count toward its metrics, and background snapshots aggregate crowd stats for peak-time forecasting.",
       link: "https://github.com/saloushe/waitless",
       skills: ["React", "Node.js", "MongoDB", "Socket.io"],
     },
